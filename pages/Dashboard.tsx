@@ -77,6 +77,8 @@ const Dashboard = () => {
 
     try {
       await signOut({ redirect: false }); 
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('nextauth.message')
       console.log('cgvhbj')
       router.push('/');
     } catch (error) {
