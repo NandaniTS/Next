@@ -1,49 +1,97 @@
-import React, { useEffect, useState } from "react";
-import { IoMoonOutline } from "react-icons/io5";
-import { IoMdNotifications } from "react-icons/io";
-import { IoPersonSharp } from "react-icons/io5";
-import { useRouter } from "next/router";
+import React, { useEffect, useState } from 'react';
+import { IoMoonOutline } from 'react-icons/io5';
+import { IoMdNotifications } from 'react-icons/io';
+import { IoPersonSharp } from 'react-icons/io5';
+import { useRouter } from 'next/router';
+import { useSession, signOut } from 'next-auth/react';
 
 type ResponseData = {
-    name: string;
-    price: number;
-    review: number;
-    description: string;
-  };
+  name: string;
+  price: number;
+  review: number;
+  description: string;
+};
 
-const Dashboard=() =>{
-  let [data, setData] = useState<ResponseData[]>([]);
-  const router=useRouter()
-  const logout=()=>{
-    router.push("/")
-  }
+
+
+ 
+
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   const session = await getSession(context);
+
+//   if (!session) {
+//     return {
+//       redirect: {
+//         destination: '/login',
+//         permanent: false,
+//       },
+//     };
+//   }
+
+//   return {
+//     redirect: {
+//       destination: '/Dashboard',
+//       // permanent: false,
+//     },
+//     props: { session },
+//   };
+// };
+
+const Dashboard = () => {
+  const [data, setData] = useState<ResponseData[]>([]);
+  const router = useRouter();
+  const { data: session, status } = useSession();
+ 
+
+  // Fetch data from the API
   const getData = async () => {
     try {
-      const response = await fetch("/api/Data", {
-        method: "GET",
+      const response = await fetch('/api/Data', {
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
       const result = await response.json();
       setData(result);
       console.log(result);
-      // setData(response)
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching data:', error);
     }
   };
+
   useEffect(() => {
-    getData();
-  }, []);
+    if (status === 'unauthenticated') {
+      router.push('/');
+    } else if (status === 'authenticated') {
+      getData();
+    }
+  }, [status, session]);
+ 
+
+  // Logout function
+  const logout = async () => {
+
+    try {
+      await signOut({ redirect: false }); 
+      console.log('cgvhbj')
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <div className="flex">
       <div className="w-1/4 border h-[100vh]">
-        <div className=" p-5 text-center text-2xl font-semibold">
+        <div className="p-5 text-center text-2xl font-semibold">
           <h1>Ecom Master</h1>
         </div>
         <div className="w-full">
-          <ul>
+        <ul>
             <li className="w-[80%] text-white bg-blue-500 p-4 mx-auto py-3 rounded-lg text-center font-semibold text-xl my-2 hover:bg-white hover:text-blue-500 hover:border hover:border-blue-500">
               Dashboard
             </li>
@@ -88,19 +136,22 @@ const Dashboard=() =>{
             </button>
           </div>
         </div>
-        <div className="flex justify-between flex-wrap w-[90%] mx-auto py-2 ">
-          {data.map((e) => (
-            <div className="w-1/4  p-4 border m-2 rounded-lg shadow-lg">
-              <h1 className="font-semibold text-3xl ">{e.name}</h1>
-              <p className="font-medium text-gray-700">Price: Rs {e.price}</p>
-              <p className="font-semibold text-gray-700">Rating: {e.review}</p>
-              <p className="font-medium text-gray-700">Description: {e.description}</p>
+        <div className="flex justify-between flex-wrap w-[90%] mx-auto py-2">
+          {data.map((item) => (
+            <div key={item.name} className="w-1/4 p-4 border m-2 rounded-lg shadow-lg">
+              <h1 className="font-semibold text-3xl">{item.name}</h1>
+              <p className="font-medium text-gray-700">Price: Rs {item.price}</p>
+              <p className="font-semibold text-gray-700">Rating: {item.review}</p>
+              <p className="font-medium text-gray-700">Description: {item.description}</p>
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-}
+};
+
+
 
 export default Dashboard;
+// export { getServerSideProps };

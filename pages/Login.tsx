@@ -1,30 +1,57 @@
 import React,{useState} from "react";
 import { useRouter } from "next/router";
+import { signIn } from 'next-auth/react';
 
 export default function Login() {
   const router = useRouter();
     let[email,setEmail]=useState<String>("")
     let [password,setPassword]=useState<String>("")
-    const Login=async()=>{
-        try{
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-              }); 
-            if (response.status === 200) {
-                router.push("/Dashboard")
-              } else {
-                console.log("error")
-              } 
-            
-        }catch(error){
-            console.log(error)
+ 
+    // const login = async (e:React.FormEvent) => {
+    //   try {
+    //     const response = await fetch('/api/login', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({ email, password }),
+    //     });
+    
+    //     if (!response.ok) {
+    //       throw new Error('Login failed');
+    //     }
+    
+    //     const { token } = await response.json();
+    //     console.log('Token received:', token);
+        
+    //     localStorage.setItem('jwtToken', token);
+    //     console.log('Redirecting to dashboard');
+        
+    //     router.push('/Dashboard');
+    //   } catch (error) {
+    //     console.error('Login error:', error);
+    //   }
+    // };
 
+    const login = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      try {
+        const result = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
+        console.log('SignIn result:', result);
+        if (result?.error) {
+          console.error('Login failed:', result.error);
+        } else {
+          console.log('Login successful');
+          router.push('/Dashboard');
         }
-    }
+      } catch (error) {
+        console.error('Login error:', error);
+      }
+    };
 
   return (
     <div className="border bg-white shadow-lg mt-5 rounded-lg w-1/2 mx-auto flex flex-col justify-center items-center p-6">
@@ -47,7 +74,7 @@ export default function Login() {
       <br />
       <button
         className=" bg-blue-500 p-4 py-3 rounded-lg text-white font-semibold w-1/2"
-        onClick={Login}
+        onClick={login}
       >
         LogIn
       </button>
